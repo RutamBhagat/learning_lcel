@@ -86,28 +86,25 @@ if __name__ == "__main__":
         | ReActSingleInputOutputParser()
     )
 
-    agent_step: Union[AgentAction, AgentFinish] = agent.invoke(
-        {
-            "input": "What is the length of text Hello in characters? answer in one sentence",
-            "agent_scratchpad": intermediate_steps,
-        }
-    )
+    agent_step = ""
 
-    if isinstance(agent_step, AgentAction):
-        tool_name = agent_step.tool
-        tool_to_use = find_tool_by_name(tools, tool_name)
-        tool_input = agent_step.tool_input
+    while not isinstance(agent_step, AgentFinish):
+        agent_step: Union[AgentAction, AgentFinish] = agent.invoke(
+            {
+                "input": "What is the length of text Hello in characters? answer in one sentence",
+                "agent_scratchpad": intermediate_steps,
+            }
+        )
+        print(agent_step)
 
-        observation = tool_to_use.func(str(tool_input))
-        print(f"{observation=}")
-        intermediate_steps.append((agent_step, str(observation)))
+        if isinstance(agent_step, AgentAction):
+            tool_name = agent_step.tool
+            tool_to_use = find_tool_by_name(tools, tool_name)
+            tool_input = agent_step.tool_input
 
-    agent_step: Union[AgentAction, AgentFinish] = agent.invoke(
-        {
-            "input": "What is the length of text Hello in characters? answer in one sentence",
-            "agent_scratchpad": intermediate_steps,
-        }
-    )
+            observation = tool_to_use.func(str(tool_input))
+            print(f"{observation=}")
+            intermediate_steps.append((agent_step, str(observation)))
 
     if isinstance(agent_step, AgentFinish):
         # currently its answering only in one digit not sentence not sure why
