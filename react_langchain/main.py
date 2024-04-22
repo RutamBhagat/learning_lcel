@@ -10,6 +10,9 @@ from langchain_openai import ChatOpenAI
 
 from langchain.agents.format_scratchpad import format_log_to_str
 
+from callbacks.callbacks import AgentCallbackHandler
+
+# this is just for understanding use the func from langchain
 # from logs.log import format_log_to_str
 
 
@@ -19,8 +22,8 @@ def get_text_length(text) -> int:
     Returns the length of a text by characters
     """
     print(f"get_text_length entered with {text=}")
-    # strip \n and \t and remove leading and trailing single quotes and double quotes and remove leading and trailing whitespaces
-    text = text.strip().strip("\n").strip("\t").strip("'").strip('"').strip()
+    # strip \n and remove leading and trailing single quotes and double quotes and remove leading and trailing whitespaces
+    text = text.strip().strip("\n").strip("'").strip('"').strip()
     return len(text)
 
 
@@ -68,6 +71,7 @@ if __name__ == "__main__":
         model_kwargs={
             "stop": ["Observation"],
         },
+        callbacks=[AgentCallbackHandler()],
     )
 
     intermediate_steps = []
