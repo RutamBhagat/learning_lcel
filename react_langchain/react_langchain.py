@@ -51,7 +51,7 @@ if __name__ == "__main__":
     Begin!
 
     Question: {input}
-    Thought: 
+    Thought: {agent_scratchpad}
     """
 
     prompt = PromptTemplate.from_template(template=template).partial(
@@ -62,18 +62,28 @@ if __name__ == "__main__":
     llm = ChatOpenAI(
         temperature=0,
         model_kwargs={
-            "stop": [
-                "\n    Observation"
-            ],  # stop word is most important and must be exact match
+            "stop": ["Observation"],
         },
     )
+
+    intermediate_steps = []
+
     agent = (
-        {"input": lambda x: x["input"]} | prompt | llm | ReActSingleInputOutputParser()
+        {
+            "input": lambda x: x["input"],
+            "agent_scratchpad": lambda x: x["agent_scratchpad"],
+        }
+        | prompt
+        | llm
+        | ReActSingleInputOutputParser()
     )
+
     agent_step: Union[AgentAction, AgentFinish] = agent.invoke(
-        {"input": "What is the length of text Hello in characters?"}
+        {
+            "input": "What is the length of text Hello in characters?",
+            "agent_scratchpad": intermediate_steps,
+        }
     )
-    print(agent_step)
 
     if isinstance(agent_step, AgentAction):
         tool_name = agent_step.tool
@@ -82,3 +92,5 @@ if __name__ == "__main__":
 
         observation = tool_to_use.func(str(tool_input))
         print(f"{observation=}")
+        intermediate_steps.append((agent_step, str(observation)))
+        print("Finished")
