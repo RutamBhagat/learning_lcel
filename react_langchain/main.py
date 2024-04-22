@@ -8,6 +8,10 @@ from langchain_core.agents import AgentAction, AgentFinish
 from langchain_core.tools import Tool
 from langchain_openai import ChatOpenAI
 
+from langchain.agents.format_scratchpad import format_log_to_str
+
+# from logs.log import format_log_to_str
+
 
 @tool
 def get_text_length(text) -> int:
@@ -71,7 +75,7 @@ if __name__ == "__main__":
     agent = (
         {
             "input": lambda x: x["input"],
-            "agent_scratchpad": lambda x: x["agent_scratchpad"],
+            "agent_scratchpad": lambda x: format_log_to_str(x["agent_scratchpad"]),
         }
         | prompt
         | llm
@@ -80,7 +84,7 @@ if __name__ == "__main__":
 
     agent_step: Union[AgentAction, AgentFinish] = agent.invoke(
         {
-            "input": "What is the length of text Hello in characters?",
+            "input": "What is the length of text Hello in characters? answer in one sentence",
             "agent_scratchpad": intermediate_steps,
         }
     )
@@ -93,4 +97,14 @@ if __name__ == "__main__":
         observation = tool_to_use.func(str(tool_input))
         print(f"{observation=}")
         intermediate_steps.append((agent_step, str(observation)))
-        print("Finished")
+
+    agent_step: Union[AgentAction, AgentFinish] = agent.invoke(
+        {
+            "input": "What is the length of text Hello in characters? answer in one sentence",
+            "agent_scratchpad": intermediate_steps,
+        }
+    )
+
+    if isinstance(agent_step, AgentFinish):
+        # currently its answering only in one digit not sentence not sure why
+        print(agent_step.return_values)
